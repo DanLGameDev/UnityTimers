@@ -3,7 +3,7 @@ namespace DGP.UnityTimers
     public class Timer : TimerBase
     {
         public float TimeScale { get; set; } = 1.0f;
-        public bool Enabled { get; set; } = false;
+        public bool Enabled { get; set; } = true;
         
         protected override void Tick(float deltaTime)
         {
