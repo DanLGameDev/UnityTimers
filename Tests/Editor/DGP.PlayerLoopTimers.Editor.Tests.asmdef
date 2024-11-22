@@ -1,0 +1,18 @@
+{
+    "name": "DGP.PlayerLoopTimers.Editor.Tests",
+    "rootNamespace": "DGP.PlayerLoopTimers.Editor.Tests",
+    "references": [
+        "GUID:fe0ff5df58d63c042b55095c5252cd39"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

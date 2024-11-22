@@ -1,0 +1,11 @@
+{
+  "name": "unitytimers",
+  "version": "0.1.0",
+  "displayName": "Unity Timers",
+  "description": "",
+  "unity": "2023.1",
+  "author": {
+    "name": "Daniel Loughmiller",
+    "url": "https://github.com/DanLGameDev/"
+  }
+}
