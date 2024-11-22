@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace DGP.PlayerLoopTimers.PlayerLoop
+namespace DGP.UnityTimers.PlayerLoop
 {
     public static class PlayerLoopTimeProviders
     {

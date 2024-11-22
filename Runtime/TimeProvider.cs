@@ -1,6 +1,6 @@
 using System;
 
-namespace DGP.PlayerLoopTimers
+namespace DGP.UnityTimers
 {
     public class TimeProvider : ITimeProvider, IDisposable
     {

@@ -1,6 +1,6 @@
 {
-    "name": "DGP.PlayerLoopTimers.Editor.Tests",
-    "rootNamespace": "DGP.PlayerLoopTimers.Editor.Tests",
+    "name": "DGP.UnityTimers.Editor.Tests",
+    "rootNamespace": "DGP.UnityTimers.Editor.Tests",
     "references": [
         "GUID:fe0ff5df58d63c042b55095c5252cd39"
     ],

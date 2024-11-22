@@ -1,6 +1,6 @@
 {
-  "name": "DGP.PlayerLoopTimers",
-  "rootNamespace": "DGP.PlayerLoopTimers",
+  "name": "DGP.UnityTimers",
+  "rootNamespace": "DGP.UnityTimers",
   "references": [],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
 
-namespace DGP.PlayerLoopTimers
+namespace DGP.UnityTimers
 {
     public class TimeHandlerCollection
     {
