@@ -2,29 +2,16 @@ using System;
 
 namespace DGP.UnityTimers
 {
-    public class TimeProvider : ITimeProvider, IDisposable
+    public class TimeProvider : ITimeProvider
     {
-        private readonly TimeHandlerCollection _timeHandlers = new();
+        private readonly TickHandlerCollection _tickHandlers = new();
         
-        public void AddHandler(ITimeProvider.TickHandler handler) => _timeHandlers.AddHandler(handler);
-        public void RemoveHandler(ITimeProvider.TickHandler handler) => _timeHandlers.RemoveHandler(handler);
+        public void AddHandler(ITimeProvider.TickHandler handler) => _tickHandlers.AddHandler(handler);
+        public void RemoveHandler(ITimeProvider.TickHandler handler) => _tickHandlers.RemoveHandler(handler);
 
-        public virtual void Tick(float deltaTime) => UpdateSubscribers(deltaTime);
+        public void Tick(float deltaTime) => UpdateSubscribers(deltaTime);
         
-        protected virtual void UpdateSubscribers(float deltaTime)
-        {
-            _timeHandlers.NotifySubscribers(deltaTime);
-        }
-
-        protected virtual void Dispose(bool disposing) { }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-
+        private void UpdateSubscribers(float deltaTime) => _tickHandlers.NotifySubscribers(deltaTime);
         
     }
 }

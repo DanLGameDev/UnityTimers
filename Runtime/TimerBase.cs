@@ -2,29 +2,22 @@ using System;
 
 namespace DGP.UnityTimers
 {
-    public abstract class TimerBase : ITimeProvider, IDisposable
+    public abstract class TimerBase : IDisposable
     {
-        private readonly TimeHandlerCollection _timeHandlers = new();
-        protected TimeHandlerCollection TimeHandlers => _timeHandlers;
-
         private ITimeProvider _timeProvider;
+
+        protected abstract void TickInternal(float deltaTime);
         
-        public void AddHandler(ITimeProvider.TickHandler handler) => _timeHandlers.AddHandler(handler);
-        public void RemoveHandler(ITimeProvider.TickHandler handler) => _timeHandlers.RemoveHandler(handler);
-
-        protected virtual void Tick(float deltaTime) => _timeHandlers.NotifySubscribers(deltaTime);
-
         protected TimerBase() { }
-
         protected TimerBase(ITimeProvider timeProvider)
         {
-            timeProvider.AddHandler(Tick);
+            timeProvider.AddHandler(TickInternal);
             _timeProvider = timeProvider;
         }
 
         public void Dispose()
         {
-            _timeProvider?.RemoveHandler(Tick);
+            _timeProvider?.RemoveHandler(TickInternal);
             _timeProvider = null;
         }
     }

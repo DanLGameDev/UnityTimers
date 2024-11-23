@@ -46,11 +46,6 @@ namespace DGP.UnityTimers.PlayerLoop
             PlayerLoopUtils.TryRemoveSystem(typeof(BeforeFixedUpdateTimeProvider));
             PlayerLoopUtils.TryRemoveSystem(typeof(AfterFixedUpdateTimeProvider));
 
-            BeforeUpdateTimeProvider.Dispose();
-            AfterUpdateTimeProvider.Dispose();
-            BeforeFixedUpdateTimeProvider.Dispose();
-            AfterFixedUpdateTimeProvider.Dispose();
-            
             Application.quitting -= HandleApplicationQuit;
         }
     }

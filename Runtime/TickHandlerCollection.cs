@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace DGP.UnityTimers
 {
-    public class TimeHandlerCollection
+    public class TickHandlerCollection
     {
         private readonly List<ITimeProvider.TickHandler> _tickHandlers = new();
         
