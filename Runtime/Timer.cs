@@ -13,11 +13,11 @@ namespace DGP.UnityTimers
         
         protected override void TickInternal(float deltaTime)
         {
-            if (!Enabled) return;
+            if (!Enabled) 
+                return;
+            
             _tickHandlers.NotifySubscribers(deltaTime * TimeScale);
         }
-        
-        public void Tick(float deltaTime) => TickInternal(deltaTime);
 
         public Timer() { }
         public Timer(ITimeProvider timeProvider) : base(timeProvider) { }

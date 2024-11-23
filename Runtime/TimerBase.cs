@@ -6,15 +6,19 @@ namespace DGP.UnityTimers
     {
         private ITimeProvider _timeProvider;
 
-        protected abstract void TickInternal(float deltaTime);
-        
+        // Constructors
         protected TimerBase() { }
         protected TimerBase(ITimeProvider timeProvider)
         {
             timeProvider.AddHandler(TickInternal);
             _timeProvider = timeProvider;
         }
+        
+        // Time Handling
+        protected abstract void TickInternal(float deltaTime);
+        
 
+        // IDisposable
         public void Dispose()
         {
             _timeProvider?.RemoveHandler(TickInternal);
