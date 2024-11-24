@@ -2,21 +2,45 @@ using System;
 
 namespace DGP.UnityTimers
 {
-    public abstract class TimerBase : IDisposable
+    public abstract class TimerBase : ITimeProvider, IDisposable
     {
+        private readonly TickHandlerCollection _tickHandlers = new();
+        protected TickHandlerCollection TickHandlers => _tickHandlers;
+        
         private ITimeProvider _timeProvider;
+
+        // State
+        private bool _enabled = false;
+        public bool Enabled
+        {
+            get => _enabled;
+            set => _enabled = value;
+        }
 
         // Constructors
         protected TimerBase() { }
         protected TimerBase(ITimeProvider timeProvider)
         {
-            timeProvider.AddHandler(TickInternal);
+            timeProvider.AddHandler(Tick);
             _timeProvider = timeProvider;
         }
         
         // Time Handling
-        protected abstract void TickInternal(float deltaTime);
-        
+        public void AddHandler(ITimeProvider.TickHandler handler) => _tickHandlers.AddHandler(handler);
+        public void RemoveHandler(ITimeProvider.TickHandler handler) => _tickHandlers.RemoveHandler(handler);
+
+        public virtual void Tick(float deltaTime)
+        {
+            if (!_enabled) 
+                return;
+            
+            TickInternal(deltaTime);
+        }
+
+        protected virtual void TickInternal(float deltaTime)
+        {
+            _tickHandlers.NotifySubscribers(deltaTime);
+        }
 
         // IDisposable
         public void Dispose()
@@ -24,5 +48,7 @@ namespace DGP.UnityTimers
             _timeProvider?.RemoveHandler(TickInternal);
             _timeProvider = null;
         }
+
+
     }
 }
