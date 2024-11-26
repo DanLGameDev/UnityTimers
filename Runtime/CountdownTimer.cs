@@ -1,80 +1,80 @@
 using System;
-using System.Security.Cryptography;
-using UnityEditor;
 
 namespace DGP.UnityTimers
 {
     public class CountdownTimer : TimerBase
     {
-        public event Action<bool> OnCountdownStatusChanged;
+        public event Action OnCountdownStart;
         public event Action<float> OnCountdownUpdated;
+        public event Action OnCountdownStopped;
         public event Action OnCountdownComplete;
         
-        private readonly float _initialTime;
-        private float _timeRemaining;
         
-        public float TimeRemaining => _timeRemaining;
-        public float TimeRemainingNormalized => _timeRemaining / _initialTime;
-        public bool IsComplete() => _timeRemaining <= 0;
+        private readonly float _timerDuration;
+        private float _remainingTime;
+        
+        public float ElapsedTime => _timerDuration - _remainingTime;
+        public float RemainingTime => _remainingTime;
+        
+        public float ElapsedTimeNormalized => (_timerDuration - _remainingTime) / _timerDuration;
+        public float RemainingTimeNormalized => _remainingTime / _timerDuration;
+        
+        public bool IsComplete() => _remainingTime <= 0;
 
-        public CountdownTimer(ITimeProvider timeProvider, float duration, bool startImmediately = false) : this(duration, startImmediately)
+        public CountdownTimer(ITimeProvider timeProvider, float timerDuration) : this(timerDuration)
         {
             timeProvider.AddHandler(Tick);
         }
         
-        public CountdownTimer(float duration, bool startImmediately = false) : base()
+        public CountdownTimer(float timerDuration) : base()
         {
-            _initialTime = duration;
-            _timeRemaining = duration;
-
-            if (startImmediately)
-                Start();
+            _timerDuration = timerDuration;
+            _remainingTime = timerDuration;
         }
         
         public void Start()
         {
             if (Enabled) return;
+            
             Enabled = true;
-            OnCountdownStatusChanged?.Invoke(Enabled);
+            OnCountdownStart?.Invoke();
         }
 
-        public void ResetAndStart()
+        public void Reset() => _remainingTime = _timerDuration;
+
+        public void Restart()
         {
-            Halt();
-            _timeRemaining = _initialTime;
+            Reset();
             Start();
         }
 
-        public void Halt()
+        public void Stop(bool resetTime = true)
         {
             if (!Enabled) return;
             
             Enabled = false;
-            OnCountdownStatusChanged?.Invoke(Enabled);
+            OnCountdownStopped?.Invoke();
+            
+            if (resetTime)
+                _remainingTime = _timerDuration;
         }
-
-        public void CancelAndReset()
-        {
-            if (!Enabled) return;
-
-            Halt();
-            _timeRemaining = _initialTime;
-        }
-        
 
         protected override void TickInternal(float deltaTime)
         {
             
-            if (_timeRemaining > 0) {
-                _timeRemaining -= deltaTime;
+            if (_remainingTime > 0) {
+                _remainingTime -= deltaTime;
 
-                if (_timeRemaining <= 0) {
-                    Halt();
-                    _timeRemaining = 0f;
+                if (_remainingTime <= 0) {
+                    _remainingTime = 0f;
+                    
+                    Enabled = false;
+                    
+                    OnCountdownStopped?.Invoke();
                     OnCountdownComplete?.Invoke();
                 }
                 
-                OnCountdownUpdated?.Invoke(_timeRemaining);
+                OnCountdownUpdated?.Invoke(_remainingTime);
             }
             else {
                 Enabled = false;

@@ -10,7 +10,7 @@ namespace DGP.UnityTimers
         private ITimeProvider _timeProvider;
 
         // State
-        private bool _enabled = false;
+        private bool _enabled = true;
         public bool Enabled
         {
             get => _enabled;
