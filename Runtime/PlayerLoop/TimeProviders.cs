@@ -26,8 +26,8 @@ namespace DGP.UnityTimers.PlayerLoop
             PlayerLoopUtils.InjectSystemAsFirstChildOf(typeof(FixedUpdate), typeof(BeforeFixedUpdateTimeProvider), PlayerLoopBeforeFixedUpdate);
             PlayerLoopUtils.InjectSystemAsLastChildOf(typeof(FixedUpdate), typeof(AfterFixedUpdateTimeProvider), PlayerLoopAfterFixedUpdate);
             
+            Application.quitting -= HandleApplicationQuit;
             Application.quitting += HandleApplicationQuit;
-            PlayerLoopUtils.PrintPlayerLoop(UnityEngine.LowLevel.PlayerLoop.GetCurrentPlayerLoop());
         }
 
         // Fixed Update

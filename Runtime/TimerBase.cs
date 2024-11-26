@@ -8,14 +8,9 @@ namespace DGP.UnityTimers
         protected TickHandlerCollection TickHandlers => _tickHandlers;
         
         private ITimeProvider _timeProvider;
-
-        // State
-        private bool _enabled = true;
-        public bool Enabled
-        {
-            get => _enabled;
-            set => _enabled = value;
-        }
+        
+        public float TimeScale { get; set; } = 1.0f;
+        public bool Enabled { get; set; } = true;
 
         // Constructors
         protected TimerBase() { }
@@ -31,10 +26,10 @@ namespace DGP.UnityTimers
 
         public virtual void Tick(float deltaTime)
         {
-            if (!_enabled) 
+            if (!Enabled) 
                 return;
             
-            TickInternal(deltaTime);
+            TickInternal(deltaTime * TimeScale);
         }
 
         protected virtual void TickInternal(float deltaTime)
