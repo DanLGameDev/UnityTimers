@@ -21,12 +21,11 @@ namespace DGP.UnityTimers
 
         protected override void TickInternal(float deltaTime)
         {   
-            base.TickInternal(deltaTime);
-            
             _accumulatedTime += deltaTime;
 
             while (_accumulatedTime >= _interval) {
                 _accumulatedTime -= _interval;
+                base.TickInternal(_interval);
                 OnInterval?.Invoke();
             }
         }
