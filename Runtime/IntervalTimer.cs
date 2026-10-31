@@ -5,29 +5,49 @@ namespace DGP.UnityTimers
     public class IntervalTimer : TimerBase
     {
         public event Action OnInterval;
-        
-        private float _interval;
-        private float _accumulatedTime;
 
-        public IntervalTimer(float interval) : base()
-        {
-            _interval = interval;
-        }
+        public float Interval { get; }
+
+        private float _accumulatedTime;
 
         public IntervalTimer(ITimeProvider timeProvider, float interval) : base(timeProvider)
         {
-            _interval = interval;
+            Interval = RequirePositive(interval);
         }
 
-        protected override void TickInternal(float deltaTime)
-        {   
+        public IntervalTimer(float interval)
+        {
+            Interval = RequirePositive(interval);
+        }
+
+        protected override void Advance(float deltaTime)
+        {
             _accumulatedTime += deltaTime;
 
-            while (_accumulatedTime >= _interval) {
-                _accumulatedTime -= _interval;
-                base.TickInternal(_interval);
-                OnInterval?.Invoke();
+            while (IsRunning && _accumulatedTime >= Interval) {
+                Step(Interval);
             }
+
+            while (IsRunning && _accumulatedTime < 0f) {
+                Step(-Interval);
+            }
+        }
+
+        protected override void ResetProgress() => _accumulatedTime = 0f;
+
+        private void Step(float stepTime)
+        {
+            _accumulatedTime -= stepTime;
+            AdvanceChildren(stepTime);
+            OnInterval?.Invoke();
+        }
+
+        private static float RequirePositive(float interval)
+        {
+            if (interval <= 0f)
+                throw new ArgumentOutOfRangeException(nameof(interval), interval, "An interval must be greater than zero.");
+
+            return interval;
         }
     }
 }

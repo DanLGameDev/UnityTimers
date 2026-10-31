@@ -4,81 +4,56 @@ namespace DGP.UnityTimers
 {
     public class CountdownTimer : TimerBase
     {
-        public event Action OnCountdownStart;
-        public event Action<float> OnCountdownUpdated;
-        public event Action OnCountdownStopped;
-        public event Action OnCountdownComplete;
-        
-        
-        private readonly float _timerDuration;
-        private float _remainingTime;
-        
-        public float ElapsedTime => _timerDuration - _remainingTime;
-        public float RemainingTime => _remainingTime;
-        
-        public float ElapsedTimeNormalized => (_timerDuration - _remainingTime) / _timerDuration;
-        public float RemainingTimeNormalized => _remainingTime / _timerDuration;
-        
-        public bool IsComplete() => _remainingTime <= 0;
+        public event Action<float> OnUpdated;
+        public event Action OnComplete;
 
-        public CountdownTimer(ITimeProvider timeProvider, float timerDuration) : this(timerDuration)
+        public float Duration { get; }
+        public float RemainingTime { get; private set; }
+        public float ElapsedTime => Duration - RemainingTime;
+
+        public float ElapsedTimeNormalized => ElapsedTime / Duration;
+        public float RemainingTimeNormalized => RemainingTime / Duration;
+
+        public bool IsComplete => RemainingTime <= 0f;
+
+        public CountdownTimer(ITimeProvider timeProvider, float duration) : base(timeProvider)
         {
-            timeProvider.AddHandler(Tick);
-        }
-        
-        public CountdownTimer(float timerDuration) : base()
-        {
-            _timerDuration = timerDuration;
-            _remainingTime = timerDuration;
-        }
-        
-        public void Start()
-        {
-            if (Enabled) return;
-            
-            Enabled = true;
-            OnCountdownStart?.Invoke();
+            Duration = RequirePositive(duration);
+            RemainingTime = Duration;
         }
 
-        public void Reset() => _remainingTime = _timerDuration;
-
-        public void Restart()
+        public CountdownTimer(float duration)
         {
-            Reset();
-            Start();
+            Duration = RequirePositive(duration);
+            RemainingTime = Duration;
         }
 
-        public void Stop(bool resetTime = true)
+        protected override void Advance(float deltaTime)
         {
-            if (!Enabled) return;
-            
-            Enabled = false;
-            OnCountdownStopped?.Invoke();
-            
-            if (resetTime)
-                _remainingTime = _timerDuration;
+            var usedTime = Math.Clamp(deltaTime, -ElapsedTime, RemainingTime);
+
+            if (usedTime == 0f)
+                return;
+
+            RemainingTime -= usedTime;
+            AdvanceChildren(usedTime);
+            OnUpdated?.Invoke(RemainingTime);
+
+            if (RemainingTime > 0f)
+                return;
+
+            Stop();
+            OnComplete?.Invoke();
         }
 
-        protected override void TickInternal(float deltaTime)
-        {
-            
-            if (_remainingTime > 0) {
-                _remainingTime -= deltaTime;
+        protected override void ResetProgress() => RemainingTime = Duration;
 
-                if (_remainingTime <= 0) {
-                    _remainingTime = 0f;
-                    
-                    Enabled = false;
-                    
-                    OnCountdownStopped?.Invoke();
-                    OnCountdownComplete?.Invoke();
-                }
-                
-                OnCountdownUpdated?.Invoke(_remainingTime);
-            }
-            else {
-                Enabled = false;
-            }
+        private static float RequirePositive(float duration)
+        {
+            if (duration <= 0f)
+                throw new ArgumentOutOfRangeException(nameof(duration), duration, "A countdown's duration must be greater than zero.");
+
+            return duration;
         }
     }
 }

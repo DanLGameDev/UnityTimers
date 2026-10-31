@@ -2,6 +2,8 @@
     "name": "DGP.UnityTimers.Editor.Tests",
     "rootNamespace": "DGP.UnityTimers.Editor.Tests",
     "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
         "GUID:fe0ff5df58d63c042b55095c5252cd39"
     ],
     "includePlatforms": [
@@ -9,10 +11,14 @@
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
     "versionDefines": [],
     "noEngineReferences": false
 }
