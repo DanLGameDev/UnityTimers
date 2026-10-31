@@ -1,52 +1,84 @@
 using UnityEngine;
+using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
 
 namespace DGP.UnityTimers.PlayerLoop
 {
-    public class BeforeUpdateTimeProvider : TimeProvider { }
-    public class AfterUpdateTimeProvider : TimeProvider { }
-    
-    public class BeforeFixedUpdateTimeProvider : TimeProvider { }
-    public class AfterFixedUpdateTimeProvider : TimeProvider { }
-
     public static class TimeProviders
     {
-        public static readonly BeforeUpdateTimeProvider BeforeUpdateTimeProvider = new();
-        public static readonly AfterUpdateTimeProvider AfterUpdateTimeProvider = new();
-        
-        public static readonly BeforeFixedUpdateTimeProvider BeforeFixedUpdateTimeProvider = new();
-        public static readonly AfterFixedUpdateTimeProvider AfterFixedUpdateTimeProvider = new();
+        public static readonly PlayerLoopProvider BeforeUpdateTimeProvider =
+            new(typeof(Update), LoopPosition.FirstChildOf, typeof(TimersBeforeUpdate), () => Time.unscaledDeltaTime);
+        public static readonly PlayerLoopProvider AfterUpdateTimeProvider =
+            new(typeof(Update), LoopPosition.LastChildOf, typeof(TimersAfterUpdate), () => Time.unscaledDeltaTime);
+
+        public static readonly PlayerLoopProvider BeforeFixedUpdateTimeProvider =
+            new(typeof(FixedUpdate), LoopPosition.FirstChildOf, typeof(TimersBeforeFixedUpdate), () => Time.fixedUnscaledDeltaTime);
+        public static readonly PlayerLoopProvider AfterFixedUpdateTimeProvider =
+            new(typeof(FixedUpdate), LoopPosition.LastChildOf, typeof(TimersAfterFixedUpdate), () => Time.fixedUnscaledDeltaTime);
+
+        private static readonly PlayerLoopProvider[] Providers = {
+            BeforeUpdateTimeProvider,
+            AfterUpdateTimeProvider,
+            BeforeFixedUpdateTimeProvider,
+            AfterFixedUpdateTimeProvider
+        };
+
+        private sealed class TimersBeforeUpdate { }
+        private sealed class TimersAfterUpdate { }
+        private sealed class TimersBeforeFixedUpdate { }
+        private sealed class TimersAfterFixedUpdate { }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        public static void Initialize()
+        private static void InstallIntoPlayerLoop()
         {
-            PlayerLoopUtils.InjectSystemAsFirstChildOf(typeof(Update), typeof(BeforeUpdateTimeProvider), PlayerLoopBeforeUpdate);
-            PlayerLoopUtils.InjectSystemAsLastChildOf(typeof(Update), typeof(AfterUpdateTimeProvider), PlayerLoopAfterUpdate);
-            
-            PlayerLoopUtils.InjectSystemAsFirstChildOf(typeof(FixedUpdate), typeof(BeforeFixedUpdateTimeProvider), PlayerLoopBeforeFixedUpdate);
-            PlayerLoopUtils.InjectSystemAsLastChildOf(typeof(FixedUpdate), typeof(AfterFixedUpdateTimeProvider), PlayerLoopAfterFixedUpdate);
-            
-            Application.quitting -= HandleApplicationQuit;
-            Application.quitting += HandleApplicationQuit;
+            var loop = UnityEngine.LowLevel.PlayerLoop.GetCurrentPlayerLoop();
+            UnityEngine.LowLevel.PlayerLoop.SetPlayerLoop(Install(loop));
+
+            Application.quitting -= TearDown;
+            Application.quitting += TearDown;
         }
 
-        // Fixed Update
-        private static void PlayerLoopBeforeFixedUpdate() => BeforeFixedUpdateTimeProvider.Tick(Time.fixedUnscaledDeltaTime);
-        private static void PlayerLoopAfterFixedUpdate() => AfterFixedUpdateTimeProvider.Tick(Time.fixedUnscaledDeltaTime);
-
-        // Update
-        private static void PlayerLoopBeforeUpdate() => BeforeUpdateTimeProvider.Tick(Time.unscaledDeltaTime);
-        private static void PlayerLoopAfterUpdate() => AfterUpdateTimeProvider.Tick(Time.unscaledDeltaTime);
-
-        private static void HandleApplicationQuit()
+        // Application.quitting also fires on leaving Play Mode, and without a domain reload these providers outlive the session.
+        private static void TearDown()
         {
-            PlayerLoopUtils.TryRemoveSystem(typeof(BeforeUpdateTimeProvider));
-            PlayerLoopUtils.TryRemoveSystem(typeof(AfterUpdateTimeProvider));
-            
-            PlayerLoopUtils.TryRemoveSystem(typeof(BeforeFixedUpdateTimeProvider));
-            PlayerLoopUtils.TryRemoveSystem(typeof(AfterFixedUpdateTimeProvider));
+            Application.quitting -= TearDown;
 
-            Application.quitting -= HandleApplicationQuit;
+            var loop = UnityEngine.LowLevel.PlayerLoop.GetCurrentPlayerLoop();
+            UnityEngine.LowLevel.PlayerLoop.SetPlayerLoop(Uninstall(loop));
+
+            ClearSubscribers();
+        }
+
+        internal static PlayerLoopSystem Install(PlayerLoopSystem loop)
+        {
+            loop = Uninstall(loop);
+
+            foreach (var provider in Providers) {
+                if (!PlayerLoopUtils.TryInsert(loop, provider.Anchor, provider.Position, provider.CreateSystem(), out var installed)) {
+                    Debug.LogError($"{provider.Anchor.Name} not found in the player loop, so {provider.SystemType.Name} timers will not tick.");
+                    continue;
+                }
+
+                loop = installed;
+            }
+
+            return loop;
+        }
+
+        internal static PlayerLoopSystem Uninstall(PlayerLoopSystem loop)
+        {
+            foreach (var provider in Providers) {
+                loop = PlayerLoopUtils.RemoveAll(loop, provider.SystemType);
+            }
+
+            return loop;
+        }
+
+        internal static void ClearSubscribers()
+        {
+            foreach (var provider in Providers) {
+                provider.ClearSubscribers();
+            }
         }
     }
 }
